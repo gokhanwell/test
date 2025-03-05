@@ -89,6 +89,42 @@ spec:
               enabled: true
             grafana:
               enabled: {{grafana}}
+              grafana.ini:
+                auth.ldap:
+                  enabled: true
+                  allow_sign_up: true
+                  config_file: /etc/grafana/ldap.toml
+              ldap:
+                enabled: true
+                config: |-
+                  verbose_logging = true
+                  [[servers]]
+                  host = "10.x.x.x"
+                  port = 389
+                  use_ssl = false
+                  start_tls = false
+                  tls_ciphers = []
+                  min_tls_version = ""
+                  ssl_skip_verify = true
+                  bind_dn = "cn=grafana.ldap,ou=System_User,dc=xxxx,dc=com"
+                  bind_password = 'xxxxxxx'
+                  timeout = 15
+                  search_filter = "(sAMAccountName=%s)"
+                  search_base_dns = ["dc=atrosbt,dc=com"]
+                  [servers.attributes]
+                  name = "givenName"
+                  surname = "sn"
+                  username = "sAMAccountName"
+                  member_of = "memberOf"
+                  email =  "mail"
+                  [[servers.group_mappings]]
+                  group_dn = "cn=grafana - admin,ou=bilgi_sistemleri_ve_altyapi,ou=users,ou=xxxxxx,ou=dst,dc=xxxxxx,dc=com"
+                  org_role = "Admin"
+                  grafana_admin = true
+                  org_id = 1
+                  [[servers.group_mappings]]
+                  group_dn = "*"
+                  org_role = "Viewer"
               datasources:
                 datasources.yaml:
                   apiVersion: 1
@@ -101,7 +137,7 @@ spec:
                     name: np-us
                     type: prometheus
                     url: http://nonprodlocalprometheus.xxx.com.tr
-              adminPassword: 2Hp!lwy9ur4U
+              adminPassword: xxxxxxx
               defaultDashboardsEditable: true
               defaultDashboardsTimezone: Europe/Istanbul
               ingress:
