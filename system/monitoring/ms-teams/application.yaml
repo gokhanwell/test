@@ -1,0 +1,64 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: a-cluster-msteams
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - cluster: np-us   
+            version: 1.3.4
+            webhook: 'xxxxxxx'
+          - cluster: np-dev 
+            version: 1.3.4
+            webhook: 'https://xxxxxxx'
+  
+  template:
+    metadata:
+      name: '{{cluster}}-msteams'
+    spec:
+      syncPolicy:
+        automated:
+          selfHeal: true
+          prune: false
+        syncOptions:
+          - Validate=true
+          - CreateNamespace=true
+          - PrunePropagationPolicy=foreground
+          - PruneLast=true
+          - ServerSideApply=true
+      destination:
+          namespace: monitoring
+          name: '{{cluster}}'
+      project: default
+      source:
+        repoURL: https://prometheus-msteams.github.io/prometheus-msteams/
+        targetRevision: '{{version}}'
+        chart: prometheus-msteams
+        helm:
+          values: |
+            replicaCount: 1
+            image:
+              repository: quay.io/prometheusmsteams/prometheus-msteams
+              tag: v1.5.2
+              pullPolicy: Always
+            container:
+              port: 2000
+              additionalArgs: []
+            service:
+              type: ClusterIP
+              port: 2000
+            podSecurityContext:
+              runAsUser: 1000
+              runAsNonRoot: true
+            priorityClassName: ""
+            metrics:
+              serviceMonitor:
+                enabled: false
+                additionalLabels: {}
+                scrapeInterval: 30s
+            customCardTemplate: ""
+            templateFile: /etc/template/card.tmpl
+            connectors:
+            - teams: '{{webhook}}'
